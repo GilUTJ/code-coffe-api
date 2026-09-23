@@ -77,6 +77,23 @@
             font-size: 14px;
             color: #8a6552;
         }
+        .promociones {
+    display: flex;
+    gap: 20px; /* Espacio horizontal entre container y container2 */
+    justify-content: center;
+}
+       .container, .container2 {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr; /* Cambiado a 1fr porque la promoción ahora ocupa toda su columna */
+}
+.promocion {
+    background: #fcf6ee;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #ead6c2;
+}
+          
     </style>
 </head>
 
@@ -101,6 +118,26 @@
         <div class="promo">
             ✨ Promociones especiales en tus pedidos
         </div>
+
+        <br>
+        <section class="promociones">
+<br>
+
+<div class="container">
+    <div class="promocion">
+        <h3> Estudiantes 🎓</h3>
+        <p>Obtén 10% de descuento mostrando tu credencial.</p>
+    </div>
+    </div>
+    <br>
+
+    <div class="container2">
+    <div class="promocion">
+        <h3> Cumpleaños 🎂</h3>
+        <p>Disfruta de un 15% de descuento en tu día especial.</p>
+    </div>
+    </div>
+</section>
 
         <footer>
             Pedidos fáciles · Comandas digitales · Cloud Coffee
