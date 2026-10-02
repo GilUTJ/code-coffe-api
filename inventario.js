@@ -1,6 +1,6 @@
 // Inventario de insumos de Cloud Coffee
 
-const inventario = [
+const inventarioInsumos = [
     {
         nombre: "Café",
         stock: 20,
@@ -19,11 +19,11 @@ const inventario = [
 ];
 
 function consultarStock() {
-    return inventario;
+    return inventarioInsumos;
 }
 
 function verificarStockBajo() {
-    return inventario.filter(insumo => insumo.stock <= insumo.minimo);
+    return inventarioInsumos.filter(insumo => insumo.stock <= insumo.minimo);
 }
 
 module.exports = {
