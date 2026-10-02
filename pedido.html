@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - Cloud Coffee</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav>
+            <a href="index.html" class="logo">Cloud<span>Coffee</span></a>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="index.html#menu">Menú</a></li>
+                <li><a href="#" class="active">Hacer Pedido</a></li>
+                <li><a href="index.html#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        
+        <main class="form-section">
+            <h2 class="section-title">Personaliza tu Pedido</h2>
+            <form id="orderForm">
+                
+                <div class="form-group">
+                    <label id="lblCliente" for="clientName">Nombre para el pedido</label>
+                    <input type="text" id="clientName" placeholder="Ej. Sofía" required>
+                </div>
+
+                <div class="grid-menu">
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color); font-size: 1.2rem;">☕ Bebidas</h3>
+                        
+                        <div class="form-group">
+                            <label for="coffeeSelect">Selecciona tu Café</label>
+                            <select id="coffeeSelect">
+                                <option value="">-- Ninguno --</option>
+                                <option value="Espresso Americano">Espresso Americano</option>
+                                <option value="Café Latte">Café Latte</option>
+                                <option value="Cappuccino">Cappuccino</option>
+                                <option value="Caramel Macchiato">Caramel Macchiato</option>
+                                <option value="Cold Brew Nitro">Cold Brew Nitro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tamaño de la Bebida</label>
+                            <div class="radio-tile-group">
+                                <label style="flex:1;">
+                                    <input type="radio" name="size" value="Alto (12oz)" checked>
+                                    <div class="radio-tile">Alto</div>
+                                </label>
+                                <label style="flex:1;">
+                                    <input type="radio" name="size" value="Grande (16oz)">
+                                    <div class="radio-tile">Grande</div>
+                                </label>
+                                <label style="flex:1;">
+                                    <input type="radio" name="size" value="Venti (20oz)">
+                                    <div class="radio-tile">Venti</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Opciones de Leche y Extras</label>
+                            <label class="checkbox-label"><input type="checkbox" name="extra" value="Leche de Almendra"> Leche de Almendra</label>
+                            <label class="checkbox-label"><input type="checkbox" name="extra" value="Leche de Avena"> Leche de Avena</label>
+                            <label class="checkbox-label"><input type="checkbox" name="extra" value="Shot Extra"> Shot Espresso (+)</label>
+                            <label class="checkbox-label"><input type="checkbox" name="extra" value="Jarabe de Vainilla"> Jarabe Vainilla</label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 1rem; color: var(--primary-color); font-size: 1.2rem;">🥐 Alimentos</h3>
+                        
+                        <div class="form-group">
+                            <label for="foodSelect">Selecciona tu Comida</label>
+                            <select id="foodSelect">
+                                <option value="">-- Ninguno --</option>
+                                <option value="Croissant de Mantequilla">Croissant de Mantequilla</option>
+                                <option value="Muffin de Arándanos">Muffin de Arándanos</option>
+                                <option value="Panini de Pavo y Queso">Panini de Pavo y Queso</option>
+                                <option value="Cheesecake de Frambuesa">Cheesecake de Frambuesa</option>
+                                <option value="Bagel con Crema">Bagel con Queso Crema</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preparación de Alimento</label>
+                            <div class="radio-tile-group">
+                                <label style="flex:1;">
+                                    <input type="radio" name="foodPrep" value="Calentar" checked>
+                                    <div class="radio-tile">¡Caliente!</div>
+                                </label>
+                                <label style="flex:1;">
+                                    <input type="radio" name="foodPrep" value="Normal">
+                                    <div class="radio-tile">Normal</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Enviar al Barista ☕</button>
+            </form>
+        </main>
+
+        <aside class="notifications-section">
+            <h3 style="color: var(--primary-color); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>📋 Pedidos en Cola</span>
+                <span id="notifCount" style="background: var(--primary-color); color: white; font-size: 0.8rem; padding: 0.2rem 0.6rem; border-radius: 10px;">0</span>
+            </h3>
+            <div class="notifications-container" id="notificationsContainer">
+                <p class="placeholder-text" id="placeholder">No hay pedidos pendientes en este momento.</p>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+        const orderForm = document.getElementById('orderForm');
+        const notificationsContainer = document.getElementById('notificationsContainer');
+        const placeholder = document.getElementById('placeholder');
+        const notifCount = document.getElementById('notifCount');
+        
+        let orderTicketNumber = 101;
+        let activeOrders = 0;
+
+        orderForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const clientName = document.getElementById('clientName').value;
+            const coffeeSelected = document.getElementById('coffeeSelect').value;
+            const sizeSelected = document.querySelector('input[name="size"]:checked').value;
+            
+            let extras = [];
+            document.querySelectorAll('input[name="extra"]:checked').forEach(checkbox => {
+                extras.push(checkbox.value);
+            });
+
+            const foodSelected = document.getElementById('foodSelect').value;
+            const foodPrep = document.querySelector('input[name="foodPrep"]:checked').value;
+
+            if (!coffeeSelected && !foodSelected) {
+                alert("Por favor, selecciona al menos una bebida o un alimento para tu pedido.");
+                return;
+            }
+
+            if (placeholder) placeholder.style.display = 'none';
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            let itemsDetailsHtml = '';
+            if (coffeeSelected) {
+                itemsDetailsHtml += `<div><strong>${coffeeSelected}</strong> (${sizeSelected})</div>`;
+            }
+            if (foodSelected) {
+                itemsDetailsHtml += `<div><strong>${foodSelected}</strong> [${foodPrep}]</div>`;
+            }
+
+            let extrasText = extras.length > 0 ? `Extras: ${extras.join(', ')}` : 'Sin extras';
+
+            const card = document.createElement('div');
+            card.className = 'notification-card';
+            card.innerHTML = `
+                <div class="notif-header">
+                    <span class="notif-id">Ticket #${orderTicketNumber}</span>
+                    <span>${timeString}</span>
+                </div>
+                <div class="notif-title">Pedido de: ${clientName}</div>
+                <div class="notif-details">${itemsDetailsHtml}</div>
+                <div class="notif-extras">${extrasText}</div>
+            `;
+
+            notificationsContainer.appendChild(card);
+            orderTicketNumber++;
+            activeOrders++;
+            notifCount.textContent = activeOrders;
+
+            // Transición visual simulando pedido terminado a los 7 segundos
+            setTimeout(() => {
+                card.classList.add('processed');
+            }, 7000);
+
+            orderForm.reset();
+        });
+    </script>
+</body>
+</html>

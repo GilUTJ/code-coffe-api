@@ -1,0 +1,100 @@
+CREATE DATABASE IF NOT EXISTS cafeteria_basica_db;
+USE cafeteria_basica_db;
+
+-- ========================================================
+-- TABLAS PRINCIPALES
+-- ========================================================
+
+CREATE TABLE clientes (
+    id_cliente INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Almacén físico de ingredientes
+CREATE TABLE insumos (
+    id_insumo INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    stock_actual DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    unidad_medida VARCHAR(10) NOT NULL, -- 'g', 'ml', 'pza'
+    stock_minimo DECIMAL(10,2) NOT NULL DEFAULT 500.00, -- Límite de alerta
+    estatus VARCHAR(20) DEFAULT 'Disponible' -- Se actualizará solo a 'Agotado' o 'Bajo Stock'
+);
+
+CREATE TABLE productos (
+    id_producto INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    precio DECIMAL(10, 2) NOT NULL
+);
+
+-- Conecta el Menú con los Insumos (La fórmula mágica de cada café)
+CREATE TABLE recetas (
+    id_receta INT AUTO_INCREMENT PRIMARY KEY,
+    id_producto INT,
+    id_insumo INT,
+    cantidad_usada DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE,
+    FOREIGN KEY (id_insumo) REFERENCES insumos(id_insumo) ON DELETE CASCADE
+);
+
+CREATE TABLE ventas (
+    id_venta INT AUTO_INCREMENT PRIMARY KEY,
+    id_cliente INT,
+    fecha_venta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    total DECIMAL(10, 2) DEFAULT 0.00,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE SET NULL
+);
+
+CREATE TABLE detalle_ventas (
+    id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+    id_venta INT NOT NULL,
+    id_producto INT NOT NULL,
+    cantidad INT NOT NULL DEFAULT 1,
+    precio_unitario DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE,
+    FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
+);
+
+-- ========================================================
+-- 🛠️ EL DISPARADOR (TRIGGER) DE DESCUENTO AUTOMÁTICO Y ESTATUS
+-- ========================================================
+DELIMITER //
+
+CREATE TRIGGER despues_de_vender_cafe
+AFTER INSERT ON detalle_ventas
+FOR EACH ROW
+BEGIN
+    -- 1. Restar del inventario basándose en la receta multiplicada por la cantidad comprada
+    UPDATE insumos i
+    JOIN recetas r ON i.id_insumo = r.id_insumo
+    SET i.stock_actual = i.stock_actual - (r.cantidad_usada * NEW.cantidad)
+    WHERE r.id_producto = NEW.id_producto;
+
+    -- 2. Actualizar dinámicamente el estatus del insumo según el nuevo nivel de stock
+    UPDATE insumos i
+    JOIN recetas r ON i.id_insumo = r.id_insumo
+    SET i.estatus = CASE 
+        WHEN i.stock_actual <= 0 THEN 'Agotado'
+        WHEN i.stock_actual <= i.stock_minimo THEN 'Bajo Stock'
+        ELSE 'Disponible'
+    END
+    WHERE r.id_producto = NEW.id_producto;
+END //
+
+DELIMITER ;
+
+
+// 
+INSERT INTO productos (nombre, precio) VALUES 
+-- ID 2: Café Americano
+('Café Americano 12oz', 35.00),
+-- ID 3: Cappuccino Vanilla
+('Cappuccino Vainilla 12oz', 52.00),
+-- ID 4: Iced Caramel Macchiato (Frío)
+('Iced Caramel Macchiato 16oz', 65.00),
+-- ID 5: Mocha Blanco o Chocolate Caliente
+('Chocolate Caliente Supremo', 48.00),
+-- ID 6: Alimento
+('Panini Clásico de Pavo y Queso', 75.00),
+-- ID 7: Repostería
+('Muffin de Arándanos', 38.00);
